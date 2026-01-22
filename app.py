@@ -846,6 +846,62 @@ def generate_pdf(summaries: List[MonthSummary], company_name: str, cnpj: str) ->
 
 
 # =============================================================================
+# AUTENTICAÇÃO
+# =============================================================================
+
+def check_password():
+    """Verifica se o usuário está autenticado."""
+
+    def login_form():
+        """Exibe o formulário de login."""
+        st.markdown("""
+        <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh;">
+            <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 400px; width: 100%;">
+                <h2 style="text-align: center; color: #1e3a5f; margin-bottom: 1rem;">🔐 Login</h2>
+                <p style="text-align: center; color: #64748b; margin-bottom: 2rem;">OmniAI Fiscal - Área Restrita</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        with st.form("login_form"):
+            st.text_input("Usuário", key="username")
+            st.text_input("Senha", type="password", key="password")
+            submitted = st.form_submit_button("Entrar", use_container_width=True)
+
+            if submitted:
+                if validate_credentials(st.session_state["username"], st.session_state["password"]):
+                    st.session_state["authenticated"] = True
+                    st.session_state["current_user"] = st.session_state["username"]
+                    st.rerun()
+                else:
+                    st.error("Usuário ou senha incorretos")
+
+    def validate_credentials(username: str, password: str) -> bool:
+        """Valida as credenciais do usuário."""
+        try:
+            # Tenta obter credenciais do secrets
+            valid_username = st.secrets.get("auth", {}).get("username", "admin")
+            valid_password = st.secrets.get("auth", {}).get("password", "")
+
+            if not valid_password:
+                st.warning("⚠️ Senha não configurada em secrets.toml")
+                return False
+
+            return username == valid_username and password == valid_password
+        except Exception:
+            st.error("Erro ao verificar credenciais. Configure o arquivo secrets.toml")
+            return False
+
+    # Verifica se já está autenticado
+    if st.session_state.get("authenticated", False):
+        return True
+
+    # Exibe formulário de login
+    login_form()
+    return False
+
+
+# =============================================================================
 # INTERFACE STREAMLIT
 # =============================================================================
 
@@ -891,6 +947,10 @@ def extract_month_year(filename: str, header: Optional[SpedHeader] = None) -> Tu
 
 
 def main():
+    # Verifica autenticação
+    if not check_password():
+        return
+
     # Header
     st.markdown("""
     <div class="header-container">
@@ -898,9 +958,17 @@ def main():
         <p class="header-subtitle">Exclusão do ICMS-ST da Base de Cálculo PIS/COFINS</p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Sidebar
     with st.sidebar:
+        # Usuário logado e logout
+        st.markdown(f"👤 **{st.session_state.get('current_user', 'Usuário')}**")
+        if st.button("🚪 Sair", use_container_width=True):
+            st.session_state["authenticated"] = False
+            st.session_state["current_user"] = None
+            st.rerun()
+
+        st.markdown("---")
         st.markdown("### ⚙️ Configurações")
         
         st.markdown("#### CFOPs Elegíveis")

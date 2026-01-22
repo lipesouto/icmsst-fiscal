@@ -27,6 +27,9 @@ build/
 .env
 .env.local
 
+# Secrets do Streamlit (contém senhas)
+.streamlit/secrets.toml
+
 # Arquivos temporários
 *.tmp
 *.log
