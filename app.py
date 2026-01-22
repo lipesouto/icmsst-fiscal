@@ -854,27 +854,43 @@ def check_password():
 
     def login_form():
         """Exibe o formulário de login."""
+        # CSS para centralizar verticalmente
         st.markdown("""
-        <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh;">
-            <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 400px; width: 100%;">
-                <h2 style="text-align: center; color: #1e3a5f; margin-bottom: 1rem;">🔐 Login</h2>
-                <p style="text-align: center; color: #64748b; margin-bottom: 2rem;">OmniAI Fiscal - Área Restrita</p>
-            </div>
-        </div>
+        <style>
+            [data-testid="stAppViewContainer"] {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            [data-testid="stMain"] {
+                width: 100%;
+            }
+        </style>
         """, unsafe_allow_html=True)
 
-        with st.form("login_form"):
-            st.text_input("Usuário", key="username")
-            st.text_input("Senha", type="password", key="password")
-            submitted = st.form_submit_button("Entrar", use_container_width=True)
+        # Colunas para centralizar horizontalmente
+        col1, col2, col3 = st.columns([1, 2, 1])
 
-            if submitted:
-                if validate_credentials(st.session_state["username"], st.session_state["password"]):
-                    st.session_state["authenticated"] = True
-                    st.session_state["current_user"] = st.session_state["username"]
-                    st.rerun()
-                else:
-                    st.error("Usuário ou senha incorretos")
+        with col2:
+            st.markdown("""
+            <div style="background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); margin-top: 15vh;">
+                <h2 style="text-align: center; color: #1e3a5f; margin-bottom: 0.5rem;">🔐 Login</h2>
+                <p style="text-align: center; color: #64748b; margin-bottom: 1rem;">OmniAI Fiscal - Área Restrita</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            with st.form("login_form"):
+                st.text_input("Usuário", key="username")
+                st.text_input("Senha", type="password", key="password")
+                submitted = st.form_submit_button("Entrar", use_container_width=True)
+
+                if submitted:
+                    if validate_credentials(st.session_state["username"], st.session_state["password"]):
+                        st.session_state["authenticated"] = True
+                        st.session_state["current_user"] = st.session_state["username"]
+                        st.rerun()
+                    else:
+                        st.error("Usuário ou senha incorretos")
 
     def validate_credentials(username: str, password: str) -> bool:
         """Valida as credenciais do usuário."""
